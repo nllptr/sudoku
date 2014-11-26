@@ -14,7 +14,7 @@ var ctx;
 function main() {
     var canvas = document.getElementById("sudoku");
     ctx = canvas.getContext("2d");
-    board = createBoard();
+    board = createEmptyBoard();
     drawBoard(ctx, 0, 0, board);
     canvas.setAttribute("tabindex", "0");
     canvas.addEventListener("keydown", processKeys, false);
@@ -63,7 +63,7 @@ function drawThickLines(ctx) {
     ctx.stroke();
 }
 
-function createBoard() {
+function createEmptyBoard() {
     var board = Array(9);
     // Create board rows
     var i = 0;
@@ -71,7 +71,7 @@ function createBoard() {
         board[x] = Array(9);
         // Create board columns
         for(y = 0; y < board[x].length; y++) {
-            board[x][y] = i % 9 + 1;
+            board[x][y] = ""; //i % 9 + 1;
             i++;
         }
     }
@@ -79,8 +79,29 @@ function createBoard() {
     return board;
 }
 
-function drawSelectedBlock(ctx, x, y) {
+function randomizeBoard(board) {
+    for(i = 0; i < 30; i++) {
+        //TODO
+    }
+}
 
+function checkValid(x, y) {
+    var collisions;
+    var collision_n = 1;
+    //check row
+    for(i = 0; i < board[x].length; i++) {
+        if(x != i) {
+            if(board[x][y] === board[x][i]) {
+                collisions["collision" + collision_n] = {x, i};
+                collision_n++;
+            }
+        }
+    }
+    //check column
+    for(i = 0; i < board.length; i++) {
+        
+    }
+    //check box
 }
 
 function processKeys(e) {
