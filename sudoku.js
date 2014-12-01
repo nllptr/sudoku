@@ -86,14 +86,12 @@ function randomizeBoard(board) {
 }
 
 function checkValid(x, y) {
-    var collisions;
-    var collision_n = 1;
+    var collisions = new Array();
     //check row
     for(i = 0; i < board[x].length; i++) {
         if(x != i) {
             if(board[x][y] === board[x][i]) {
-                collisions["collision" + collision_n] = {x, i};
-                collision_n++;
+                collisions.push({"x": x,"y": i});
             }
         }
     }
@@ -102,6 +100,8 @@ function checkValid(x, y) {
         
     }
     //check box
+
+    return collisions;
 }
 
 function processKeys(e) {
@@ -135,6 +135,8 @@ function processKeys(e) {
     console.log(selection);
     drawBoard(ctx, 0, 0, board);
     drawThickLines(ctx);
+
+    console.log(checkValid(selection.x, selection.y));
 }
 
 main();
