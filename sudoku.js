@@ -1,15 +1,36 @@
+/*
+ * Color palette: http://paletton.com/#uid=33g0u0krPrxh6ySlZtltwlLzxgR
+ */
+
+// Game parameters
+var DEBUG = true;
 var cell_size = 50;
 var block_size = 3 * cell_size;
-var cell_border = "#8B97A0";
-var cell_number = "#346184";
-var cell_number_selected = "#BFC1C2";
-//var cell_number_selected = "#FF0000";
-var cell_fill = "#BFC1C2";
-var cell_fill_selected = "#346184";
-var thick_lines = "#084D81";
+
+// Colors
+var cell_border = "#00534C";
+var cell_number = "#086B63";
+var cell_number_immutable = "#00534C";
+var cell_number_selected = "#865800";
+var cell_number_colliding = "#840007";
+var cell_fill = "#2D9088";
+var cell_fill_selected = "#DB9A1D";
+var cell_fill_colliding = "#D81C25";
+var thick_lines = "#00534C";
+
+// Global variables
 var selection = 0;
 var board;
 var ctx;
+var boxes = [[  0,  1,  2,  9, 10, 11, 18, 19, 20],
+             [  3,  4,  5, 12, 13, 14, 21, 22, 23],
+             [  6,  7,  8, 15, 16, 17, 24, 25, 26],
+             [ 27, 28, 29, 36, 37, 38, 45, 46, 47],
+             [ 30, 31, 32, 39, 40, 41, 48, 49, 50],
+             [ 33, 34, 35, 42, 43, 44, 51, 52, 53],
+             [ 54, 55, 56, 63, 64, 65, 72, 73, 74],
+             [ 57, 58, 59, 66, 67, 68, 75, 76, 77],
+             [ 60, 61, 62, 69, 70, 71, 78, 79, 80]];
 
 function main() {
     var canvas = document.getElementById("sudoku");
@@ -21,17 +42,31 @@ function main() {
     canvas.focus();
 }
 
-function drawCell(ctx, x, y, n, selected) {
-    selected = typeof selected !== 'undefined' ? selected : false;
+function drawCell(ctx, x, y, n, selected, colliding) {
+    //selected = typeof selected !== 'undefined' ? selected : false;
+    //colliding = typeof colliding !== 'undefined' ? colliding : false;
     ctx.lineWidth = 1;
-    ctx.fillStyle = selected ? cell_fill_selected : cell_fill;
+    if(selected) {
+        ctx.fillStyle = cell_fill_selected;
+    } else if(colliding) {
+        ctx.fillStyle = cell_fill_colliding;
+    } else {
+        ctx.fillStyle = cell_fill;
+    }
     ctx.strokeStyle = cell_border;
     ctx.fillRect(x, y, cell_size, cell_size);
     ctx.strokeRect(x, y, cell_size, cell_size);
     ctx.font = "bold " + cell_size * 0.8 + "px sans-serif";
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
-    ctx.fillStyle = selected ? cell_number_selected : cell_number;
+    //ctx.fillStyle = selected ? cell_number_selected : cell_number;
+    if(colliding) {
+        ctx.fillStyle = cell_number_colliding;
+    } else if(selected) {
+        ctx.fillStyle = cell_number_selected;
+    } else {
+        ctx.fillStyle = cell_number;
+    }
     ctx.fillText(n, x + cell_size / 2, y + cell_size / 2);
 }
 
@@ -40,8 +75,8 @@ function drawBoard(ctx, x, y, board) {
         var cellX = x + Math.floor(i / 9) * cell_size;
         var cellY = y + (i % 9) * cell_size;
         var number = board[i];
-        if(i == selection) drawCell(ctx, cellX, cellY, number, true);
-        else drawCell(ctx, cellX, cellY, number);
+        if(i == selection) drawCell(ctx, cellX, cellY, number, true, false);
+        else drawCell(ctx, cellX, cellY, number, false, false);
     }
     drawThickLines(ctx);
 }
@@ -77,7 +112,6 @@ function checkValid(n) {
 
     //check row
     var row = Math.floor(n / 9);
-    console.log("Row: " + row);
     for(i = (row * 9); i < (row * 9 + 9); i++) {
         if(i != n && board[i] === board[n] && board[n] != "") {
             collisions.push(i);
@@ -86,7 +120,6 @@ function checkValid(n) {
     
     //check column
     var col = n % 9;
-    console.log("Col: " + col);
     for(i = col; i < 73 + col; i += 9) {
         if(i != n && board[i] === board[n] && board[n] != "") {
             collisions.push(i);
@@ -94,45 +127,62 @@ function checkValid(n) {
     }
 
     //check box
-    
-
-    drawBoard(ctx, 0, 0, board);
+    for(i = 0; i < 9; i++) {
+        var index = boxes[i].indexOf(n);
+        if(index != -1) {
+            for(j = 0; j < 9; j++) {
+                if(boxes[i][j] != n && board[boxes[i][j]] === board[n] && board[n] != "") {
+                    collisions.push(boxes[i][j]);
+                }
+            }
+            break;
+        }
+    }
+    //drawBoard(ctx, 0, 0, board);
     return collisions;
 }
 
+function checkAll() {
+    for(i = 0; i < 81; i++) {
+        //console.log(checkValid(i));
+    }
+}
+
 function processKeys(e) {
-    console.log("Key pressed: " + e.keyCode);
     switch(e.keyCode) {
         case 38:
-            console.log("Pressed up");
+            if(DEBUG) console.log("Pressed up");
             if((selection % 9) > 0) selection--;
             break;
         case 40:
-            console.log("Pressed down");
+            if(DEBUG) console.log("Pressed down");
             if((selection % 9) < 8) selection++;
             break;
         case 37:
-            console.log("Pressed left");
+            if(DEBUG) console.log("Pressed left");
             if(Math.floor(selection / 9) > 0) selection -= 9;
             break;
         case 39:
-            console.log("Pressed right");
+            if(DEBUG) console.log("Pressed right");
             if(Math.floor(selection / 9) < 8) selection += 9;
             break;
         case 27:
-            console.log("Pressed escape");
+            if(DEBUG) console.log("Pressed escape");
             selection.type = "none";
+            break;
+        case 67:
+            if(DEBUG) console.log("Pressed C");
+            checkAll();
             break;
     }
     if(e.keyCode >= 49 && e.keyCode <= 57) {
-            console.log("Pressed " + String.fromCharCode(e.keyCode));
+            if(DEBUG) console.log("Pressed " + String.fromCharCode(e.keyCode));
             board[selection] = String.fromCharCode(e.keyCode);
+            if(DEBUG) console.log(board);
     }
-    console.log(selection);
+    if(DEBUG) console.log("Selection: " + selection);
     drawBoard(ctx, 0, 0, board);
     drawThickLines(ctx);
-
-    console.log(checkValid(selection));
 }
 
 main();
