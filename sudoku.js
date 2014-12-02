@@ -7,7 +7,7 @@ var cell_number_selected = "#BFC1C2";
 var cell_fill = "#BFC1C2";
 var cell_fill_selected = "#346184";
 var thick_lines = "#084D81";
-var selection = {x: 0, y: 0};
+var selection = 0;
 var board;
 var ctx;
 
@@ -36,46 +36,33 @@ function drawCell(ctx, x, y, n, selected) {
 }
 
 function drawBoard(ctx, x, y, board) {
-    for(bX = 0; bX < board.length; bX++) {
-        for(bY = 0; bY < board[0].length; bY++) {
-            var number = board[bY][bX];
-                if(selection.x === bX && selection.y === bY)
-                    drawCell(ctx, x + bX * cell_size, y + bY * cell_size, number, true);
-                else
-                    drawCell(ctx, x + bX * cell_size, y + bY * cell_size, number);
-        }
+    for(i = 0; i < 81; i++) {
+        var cellX = x + Math.floor(i / 9) * cell_size;
+        var cellY = y + (i % 9) * cell_size;
+        var number = board[i];
+        if(i == selection) drawCell(ctx, cellX, cellY, number, true);
+        else drawCell(ctx, cellX, cellY, number);
     }
     drawThickLines(ctx);
 }
 
 function drawThickLines(ctx) {
-    // Draw thick lines
     ctx.lineWidth = cell_size / 10;
     ctx.strokeStyle = thick_lines;
-    for(bX = 1; bX < board.length; bX++) {
-        ctx.moveTo(bX * block_size, 0);
-        ctx.lineTo(bX * block_size, 3 * block_size);
-        for(bY = 1; bY < board[0].length; bY++) {
-            ctx.moveTo(0, bY *  block_size);
-            ctx.lineTo(3 * block_size, bY *  block_size);
-        }
+    for(i = 0; i < 4; i++) {
+        ctx.moveTo(0, i * block_size);
+        ctx.lineTo(3 * block_size, i * block_size);
+    }
+    for(i = 0; i < 4; i++) {
+        ctx.moveTo(i * block_size, 0);
+        ctx.lineTo(i * block_size, 3 * block_size);
     }
     ctx.stroke();
 }
 
 function createEmptyBoard() {
-    var board = Array(9);
-    // Create board rows
-    var i = 0;
-    for(x = 0; x < board.length; x++) {
-        board[x] = Array(9);
-        // Create board columns
-        for(y = 0; y < board[x].length; y++) {
-            board[x][y] = ""; //i % 9 + 1;
-            i++;
-        }
-    }
-    console.log(board);
+    var board = Array(81);
+    for(i = 0; i < 81; i++) board[i] = "";
     return board;
 }
 
@@ -85,22 +72,31 @@ function randomizeBoard(board) {
     }
 }
 
-function checkValid(x, y) {
+function checkValid(n) {
     var collisions = new Array();
+
     //check row
-    for(i = 0; i < board[x].length; i++) {
-        if(x != i) {
-            if(board[x][y] === board[x][i]) {
-                collisions.push({"x": x,"y": i});
-            }
+    var row = Math.floor(n / 9);
+    console.log("Row: " + row);
+    for(i = (row * 9); i < (row * 9 + 9); i++) {
+        if(i != n && board[i] === board[n] && board[n] != "") {
+            collisions.push(i);
         }
     }
+    
     //check column
-    for(i = 0; i < board.length; i++) {
-        
+    var col = n % 9;
+    console.log("Col: " + col);
+    for(i = col; i < 73 + col; i += 9) {
+        if(i != n && board[i] === board[n] && board[n] != "") {
+            collisions.push(i);
+        }
     }
-    //check box
 
+    //check box
+    
+
+    drawBoard(ctx, 0, 0, board);
     return collisions;
 }
 
@@ -109,19 +105,19 @@ function processKeys(e) {
     switch(e.keyCode) {
         case 38:
             console.log("Pressed up");
-            if(selection.y > 0) selection.y--;
+            if((selection % 9) > 0) selection--;
             break;
         case 40:
             console.log("Pressed down");
-            if(selection.y < board[0].length - 1) selection.y++;
+            if((selection % 9) < 8) selection++;
             break;
         case 37:
             console.log("Pressed left");
-            if(selection.x > 0) selection.x--;
+            if(Math.floor(selection / 9) > 0) selection -= 9;
             break;
         case 39:
             console.log("Pressed right");
-            if(selection.x < board.length - 1) selection.x++;
+            if(Math.floor(selection / 9) < 8) selection += 9;
             break;
         case 27:
             console.log("Pressed escape");
@@ -130,13 +126,13 @@ function processKeys(e) {
     }
     if(e.keyCode >= 49 && e.keyCode <= 57) {
             console.log("Pressed " + String.fromCharCode(e.keyCode));
-            board[selection.y][selection.x] = String.fromCharCode(e.keyCode);
+            board[selection] = String.fromCharCode(e.keyCode);
     }
     console.log(selection);
     drawBoard(ctx, 0, 0, board);
     drawThickLines(ctx);
 
-    console.log(checkValid(selection.x, selection.y));
+    console.log(checkValid(selection));
 }
 
 main();
