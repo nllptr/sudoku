@@ -4,5 +4,6 @@
 }
 
 #sudoku {
-    border: 1px solid black;
+    border: 1px solid #00534C;
+    border-radius: 7px;
 }

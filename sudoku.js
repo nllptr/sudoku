@@ -20,7 +20,8 @@ var thick_lines = "#00534C";
 
 // Global variables
 var selection = 0;
-var board;
+//var board;
+var game = {board: 'undefined'};
 var ctx;
 var boxes = [[  0,  1,  2,  9, 10, 11, 18, 19, 20],
              [  3,  4,  5, 12, 13, 14, 21, 22, 23],
@@ -35,16 +36,17 @@ var boxes = [[  0,  1,  2,  9, 10, 11, 18, 19, 20],
 function main() {
     var canvas = document.getElementById("sudoku");
     ctx = canvas.getContext("2d");
-    board = createEmptyBoard();
-    drawBoard(ctx, 0, 0, board);
+    createEmptyBoard(game);
+    randomizeBoard(game);
+    drawBoard(ctx, 0, 0, game);
     canvas.setAttribute("tabindex", "0");
-    canvas.addEventListener("keydown", processKeys, false);
+    canvas.addEventListener("keydown", function(e) {
+        processKeys(e, game);
+    });
     canvas.focus();
 }
 
 function drawCell(ctx, x, y, n, selected, colliding) {
-    //selected = typeof selected !== 'undefined' ? selected : false;
-    //colliding = typeof colliding !== 'undefined' ? colliding : false;
     ctx.lineWidth = 1;
     if(selected) {
         ctx.fillStyle = cell_fill_selected;
@@ -59,7 +61,6 @@ function drawCell(ctx, x, y, n, selected, colliding) {
     ctx.font = "bold " + cell_size * 0.8 + "px sans-serif";
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
-    //ctx.fillStyle = selected ? cell_number_selected : cell_number;
     if(colliding) {
         ctx.fillStyle = cell_number_colliding;
     } else if(selected) {
@@ -70,11 +71,11 @@ function drawCell(ctx, x, y, n, selected, colliding) {
     ctx.fillText(n, x + cell_size / 2, y + cell_size / 2);
 }
 
-function drawBoard(ctx, x, y, board) {
+function drawBoard(ctx, x, y, game) {
     for(i = 0; i < 81; i++) {
         var cellX = x + Math.floor(i / 9) * cell_size;
         var cellY = y + (i % 9) * cell_size;
-        var number = board[i];
+        var number = game.board[i];
         if(i == selection) drawCell(ctx, cellX, cellY, number, true, false);
         else drawCell(ctx, cellX, cellY, number, false, false);
     }
@@ -95,60 +96,100 @@ function drawThickLines(ctx) {
     ctx.stroke();
 }
 
-function createEmptyBoard() {
-    var board = Array(81);
-    for(i = 0; i < 81; i++) board[i] = "";
-    return board;
+function createEmptyBoard(game) {
+    game.board = new Array(81);
+    for(i = 0; i < 81; i++) game.board[i] = "";
 }
 
-function randomizeBoard(board) {
-    for(i = 0; i < 30; i++) {
-        //TODO
+function randomizeBoard(game) {
+    for(k = 0; k < 30; k++) {
+        var random_cell = Math.floor(Math.random() * 81);
+        while(game.board[random_cell] !== "") random_cell = Math.floor(Math.random() * 81);
+        if(DEBUG) console.log("Randomized cell: " + random_cell);
+        
+        var random_number = Math.floor(Math.random() * 9) + 1;
+        if(DEBUG) console.log("Generated: " + random_number);
+        game.board[random_cell] = random_number;
+        var randomize_collisions = getCollisions(game, random_cell);
+        if(DEBUG) console.log("Collisions: " + randomize_collisions);
+        while(randomize_collisions.length > 0) {
+            random_number = Math.floor(Math.random() * 9) + 1;
+            if(DEBUG) console.log("Generated new number: " + random_number);
+            game.board[random_cell] = random_number;
+            randomize_collisions = getCollisions(game, random_cell);
+        }
+        game.board[random_cell] = random_number;
     }
 }
 
-function checkValid(n) {
+function getCollisions(game, check_index) {
     var collisions = new Array();
 
+    if(game.board[check_index] === "") return collisions;
+
     //check row
-    var row = Math.floor(n / 9);
+    var row = Math.floor(check_index / 9);
     for(i = (row * 9); i < (row * 9 + 9); i++) {
-        if(i != n && board[i] === board[n] && board[n] != "") {
-            collisions.push(i);
+        if(i != check_index &&
+           game.board[i] === game.board[check_index] &&
+           game.board[check_index] != "") {
+            if(collisions.indexOf(i) === -1) {
+                if(DEBUG) console.log("Check row: Adding " + i + " to collisions.");
+                collisions.push(i);
+            }
         }
     }
     
     //check column
-    var col = n % 9;
+    var col = check_index % 9;
     for(i = col; i < 73 + col; i += 9) {
-        if(i != n && board[i] === board[n] && board[n] != "") {
-            collisions.push(i);
+        if(i != check_index &&
+           game.board[i] === game.board[check_index] &&
+           game.board[check_index] != "") {
+            if(collisions.indexOf(i) == -1) {
+                if(DEBUG) console.log("Check column: Adding " + i + " to collisions.");
+                collisions.push(i);
+            }
         }
     }
 
     //check box
+    var box_index;
     for(i = 0; i < 9; i++) {
-        var index = boxes[i].indexOf(n);
-        if(index != -1) {
-            for(j = 0; j < 9; j++) {
-                if(boxes[i][j] != n && board[boxes[i][j]] === board[n] && board[n] != "") {
-                    collisions.push(boxes[i][j]);
-                }
-            }
+        if(boxes[i].indexOf(check_index) != -1) {
+            box_index = i;
             break;
         }
     }
-    //drawBoard(ctx, 0, 0, board);
+    if(DEBUG) console.log("Box index for " + check_index + ": " + box_index);
+    for(j = 0; j < 9; j++) {
+        var box_cell = boxes[box_index][j];
+        if(box_cell != check_index &&
+           game.board[box_cell] === game.board[check_index] &&
+           game.board[check_index] != "") {
+            if(collisions.indexOf(box_cell) == -1) {
+                if(DEBUG) console.log("Check box: Adding " + box_cell + " to collisions.");
+                collisions.push(box_cell);
+            }
+        }
+    }
+
     return collisions;
 }
 
-function checkAll() {
-    for(i = 0; i < 81; i++) {
-        //console.log(checkValid(i));
+function checkAll(game) {
+    var ok = true;
+    for(p = 0; p < 81; p++) {
+        var collisions = getCollisions(game, p);
+        if(collisions.length > 0) {
+            ok = false;
+            break;
+        }
     }
+    if(DEBUG) console.log((ok ? "Board is ok." : "Board is NOT ok."));
 }
 
-function processKeys(e) {
+function processKeys(e, game) {
     switch(e.keyCode) {
         case 38:
             if(DEBUG) console.log("Pressed up");
@@ -172,16 +213,17 @@ function processKeys(e) {
             break;
         case 67:
             if(DEBUG) console.log("Pressed C");
-            checkAll();
+            checkAll(game);
             break;
     }
     if(e.keyCode >= 49 && e.keyCode <= 57) {
             if(DEBUG) console.log("Pressed " + String.fromCharCode(e.keyCode));
-            board[selection] = String.fromCharCode(e.keyCode);
-            if(DEBUG) console.log(board);
+            game.board[selection] = String.fromCharCode(e.keyCode);
+            if(DEBUG) console.log(game.board);
     }
     if(DEBUG) console.log("Selection: " + selection);
-    drawBoard(ctx, 0, 0, board);
+    if(DEBUG) console.log("Collisions: " + getCollisions(game, selection));
+    drawBoard(ctx, 0, 0, game);
     drawThickLines(ctx);
 }
 
