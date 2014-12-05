@@ -3,7 +3,7 @@
  */
 
 // Game parameters
-var DEBUG = true;
+var DEBUG = false;
 var cell_size = 50;
 var block_size = 3 * cell_size;
 
@@ -187,6 +187,7 @@ function checkAll(game) {
         }
     }
     if(DEBUG) console.log((ok ? "Board is ok." : "Board is NOT ok."));
+    return ok;
 }
 
 function processKeys(e, game) {
@@ -211,20 +212,26 @@ function processKeys(e, game) {
             if(DEBUG) console.log("Pressed escape");
             selection.type = "none";
             break;
+        case 46:
+            if(DEBUG) console.log("Pressed delete");
+            game.board[selection] = "";
+            break;
         case 67:
             if(DEBUG) console.log("Pressed C");
-            checkAll(game);
+            alert((checkAll(game) ? "Board is ok" : "Board is NOT ok"));
             break;
     }
     if(e.keyCode >= 49 && e.keyCode <= 57) {
             if(DEBUG) console.log("Pressed " + String.fromCharCode(e.keyCode));
-            game.board[selection] = String.fromCharCode(e.keyCode);
+            game.board[selection] = parseInt(String.fromCharCode(e.keyCode));
             if(DEBUG) console.log(game.board);
     }
     if(DEBUG) console.log("Selection: " + selection);
+    if(DEBUG) console.log(game.board);
     if(DEBUG) console.log("Collisions: " + getCollisions(game, selection));
     drawBoard(ctx, 0, 0, game);
     drawThickLines(ctx);
+    console.log(e.keyCode);
 }
 
 main();
