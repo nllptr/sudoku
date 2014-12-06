@@ -1,13 +1,9 @@
-/*
- * Color palette: http://paletton.com/#uid=33g0u0krPrxh6ySlZtltwlLzxgR
- */
-
 // Game parameters
 var DEBUG = false;
 var cell_size = 50;
 var block_size = 3 * cell_size;
 
-// Colors
+// Color palette: http://paletton.com/#uid=33g0u0krPrxh6ySlZtltwlLzxgR
 var cell_border = "#00534C";
 var cell_number = "#086B63";
 var cell_number_locked = "#00534C";
@@ -18,9 +14,7 @@ var cell_fill_selected = "#DB9A1D";
 var cell_fill_colliding = "#D81C25";
 var thick_lines = "#00534C";
 
-// Global variables
 var selection = 0;
-//var board;
 var game = {board: 'undefined', locked: 'undefined'};
 var ctx;
 var boxes = [[  0,  1,  2,  9, 10, 11, 18, 19, 20],
@@ -164,7 +158,6 @@ var getCollisions = function(game, check_index) {
            game.board[i] === game.board[check_index] &&
            game.board[check_index] !== 0) {
             if(collisions.indexOf(i) === -1) {
-                if(DEBUG) console.log("Check row: Adding " + i + " to collisions.");
                 collisions.push(i);
             }
         }
@@ -177,7 +170,6 @@ var getCollisions = function(game, check_index) {
            game.board[i] === game.board[check_index] &&
            game.board[check_index] !== 0) {
             if(collisions.indexOf(i) == -1) {
-                if(DEBUG) console.log("Check column: Adding " + i + " to collisions.");
                 collisions.push(i);
             }
         }
@@ -191,19 +183,16 @@ var getCollisions = function(game, check_index) {
             break;
         }
     }
-    if(DEBUG) console.log("Box index for " + check_index + ": " + box_index);
     for(j = 0; j < 9; j++) {
         var box_cell = boxes[box_index][j];
         if(box_cell != check_index &&
            game.board[box_cell] === game.board[check_index] &&
            game.board[check_index] !== 0) {
             if(collisions.indexOf(box_cell) == -1) {
-                if(DEBUG) console.log("Check box: Adding " + box_cell + " to collisions.");
                 collisions.push(box_cell);
             }
         }
     }
-
     return collisions;
 }
 
@@ -216,49 +205,36 @@ var checkAll = function(game) {
             break;
         }
     }
-    if(DEBUG) console.log((ok ? "Board is ok." : "Board is NOT ok."));
     return ok;
 }
 
 var processKeys = function(e, game) {
     switch(e.keyCode) {
         case 38:
-            if(DEBUG) console.log("Pressed up");
             if((selection % 9) > 0) selection--;
             break;
         case 40:
-            if(DEBUG) console.log("Pressed down");
             if((selection % 9) < 8) selection++;
             break;
         case 37:
-            if(DEBUG) console.log("Pressed left");
             if(Math.floor(selection / 9) > 0) selection -= 9;
             break;
         case 39:
-            if(DEBUG) console.log("Pressed right");
             if(Math.floor(selection / 9) < 8) selection += 9;
             break;
         case 27:
-            if(DEBUG) console.log("Pressed escape");
             selection.type = "none";
             break;
         case 46:
-            if(DEBUG) console.log("Pressed delete");
             if(game.locked[selection] === 0) game.board[selection] = 0;
             break;
         case 67:
-            if(DEBUG) console.log("Pressed C");
             alert((checkAll(game) ? "Board is ok" : "Board is NOT ok"));
             break;
     }
     if(e.keyCode >= 49 && e.keyCode <= 57) {
-            if(DEBUG) console.log("Pressed " + String.fromCharCode(e.keyCode));
             if(game.locked[selection] === 0) game.board[selection] = parseInt(String.fromCharCode(e.keyCode));
-            if(DEBUG) console.log(game.board);
     }
-    if(DEBUG) console.log("Selection: " + selection);
-    if(DEBUG) console.log(game.board);
-    if(DEBUG) console.log("Collisions: " + getCollisions(game, selection));
     drawBoard(ctx, 0, 0, game);
     drawThickLines(ctx);
 }
