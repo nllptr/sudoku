@@ -4,6 +4,18 @@
 }
 
 #sudoku {
-    border: 1px solid #00534C;
     border-radius: 7px;
+}
+
+#instructions {
+    width: 434px;
+    background: #2D9088;
+    border: 3px solid #00534C;
+    border-radius: 7px;
+    padding: 5px;
+}
+
+#instructions li {
+    font-family: sans-serif;
+    margin-top: 5px;
 }

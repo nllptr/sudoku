@@ -137,7 +137,7 @@ var generateSolution = function(game) {
 }
 
 var digHoles = function(game) {
-    for(i = 0; i < 30; i++) {
+    for(i = 0; i < 35; i++) {
         var randomPick = Math.floor(Math.random() * game.board.length);
         game.locked[randomPick] = game.board[randomPick];
     }
