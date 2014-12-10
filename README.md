@@ -1,4 +1,0 @@
-sudoku
-======
-
-TODO: Logic
