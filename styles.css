@@ -3,6 +3,11 @@
     padding: 0;
 }
 
+#wrapper {
+    margin: 10px auto;
+    width: 450px;
+}
+
 #sudoku {
     border-radius: 7px;
 }
@@ -13,6 +18,10 @@
     border: 3px solid #00534C;
     border-radius: 7px;
     padding: 5px;
+}
+
+#instructions ul {
+    list-style-type: none;
 }
 
 #instructions li {
