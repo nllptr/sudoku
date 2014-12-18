@@ -15,7 +15,12 @@ var cell_fill_colliding = "#D81C25";
 var thick_lines = "#00534C";
 
 var selection = 0;
-var game = {board: 'undefined', locked: 'undefined'};
+var game = {
+    board: 'undefined',
+    locked: 'undefined',
+    selection: 0,
+    old_selection: 0
+}
 var ctx;
 var boxes = [[  0,  1,  2,  9, 10, 11, 18, 19, 20],
              [  3,  4,  5, 12, 13, 14, 21, 22, 23],
@@ -79,15 +84,15 @@ var drawUpdated = function(ctx, oldSelection, newSelection, game) {
     var cellY = 0 + (oldSelection % 9) * cell_size;
     var number = (game.board[oldSelection] !== 0 ? game.board[oldSelection] : "");
     var colliding = (getCollisions(game, oldSelection).length > 0 ? true : false);
-    var locked = (game.locked[newSelection] !== 0 ? true : false);
+    var locked = (game.locked[oldSelection] !== 0 ? true : false);
     drawCell(ctx, cellX, cellY, number, false, colliding, locked);
 
     // Draw new selection
-    var cellX = 0 + Math.floor(newSelection / 9) * cell_size;
-    var cellY = 0 + (newSelection % 9) * cell_size;
-    var number = (game.board[newSelection] !== 0 ? game.board[newSelection] : "");
-    var colliding = (getCollisions(game, newSelection).length > 0 ? true : false);
-    var locked = (game.locked[newSelection] !== 0 ? true : false);
+    cellX = 0 + Math.floor(newSelection / 9) * cell_size;
+    cellY = 0 + (newSelection % 9) * cell_size;
+    number = (game.board[newSelection] !== 0 ? game.board[newSelection] : "");
+    colliding = (getCollisions(game, newSelection).length > 0 ? true : false);
+    locked = (game.locked[newSelection] !== 0 ? true : false);
     drawCell(ctx, cellX, cellY, number, true, colliding, locked);
 }
 
@@ -255,7 +260,6 @@ var processKeys = function(e, game) {
             if(game.locked[selection] === 0) game.board[selection] = parseInt(String.fromCharCode(e.keyCode));
     }
     drawUpdated(ctx, oldSelection, selection, game);
-    //drawBoard(ctx, 0, 0, game);
     drawThickLines(ctx);
 }
 
