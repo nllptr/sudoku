@@ -15,7 +15,12 @@ var cell_fill_colliding = "#D81C25";
 var thick_lines = "#00534C";
 
 var selection = 0;
-var game = {board: 'undefined', locked: 'undefined'};
+var game = {
+    board: 'undefined',
+    locked: 'undefined',
+    selection: 0,
+    old_selection: 0
+}
 var ctx;
 var boxes = [[  0,  1,  2,  9, 10, 11, 18, 19, 20],
              [  3,  4,  5, 12, 13, 14, 21, 22, 23],
@@ -71,6 +76,24 @@ var drawCell = function(ctx, x, y, n, selected, colliding, locked) {
         ctx.fillStyle = cell_number;
     }
     ctx.fillText(n, x + cell_size / 2, y + cell_size / 2);
+}
+
+var drawUpdated = function(ctx, oldSelection, newSelection, game) {
+    // Draw previous selection as unselected
+    var cellX = 0 + Math.floor(oldSelection / 9) * cell_size;
+    var cellY = 0 + (oldSelection % 9) * cell_size;
+    var number = (game.board[oldSelection] !== 0 ? game.board[oldSelection] : "");
+    var colliding = (getCollisions(game, oldSelection).length > 0 ? true : false);
+    var locked = (game.locked[oldSelection] !== 0 ? true : false);
+    drawCell(ctx, cellX, cellY, number, false, colliding, locked);
+
+    // Draw new selection
+    cellX = 0 + Math.floor(newSelection / 9) * cell_size;
+    cellY = 0 + (newSelection % 9) * cell_size;
+    number = (game.board[newSelection] !== 0 ? game.board[newSelection] : "");
+    colliding = (getCollisions(game, newSelection).length > 0 ? true : false);
+    locked = (game.locked[newSelection] !== 0 ? true : false);
+    drawCell(ctx, cellX, cellY, number, true, colliding, locked);
 }
 
 var drawBoard = function(ctx, x, y, game) {
@@ -162,7 +185,7 @@ var getCollisions = function(game, check_index) {
             }
         }
     }
-    
+
     //check column
     var col = check_index % 9;
     for(i = col; i < 73 + col; i += 9) {
@@ -209,6 +232,7 @@ var checkAll = function(game) {
 }
 
 var processKeys = function(e, game) {
+    var oldSelection = selection;
     switch(e.keyCode) {
         case 38:
             if((selection % 9) > 0) selection--;
@@ -235,7 +259,7 @@ var processKeys = function(e, game) {
     if(e.keyCode >= 49 && e.keyCode <= 57) {
             if(game.locked[selection] === 0) game.board[selection] = parseInt(String.fromCharCode(e.keyCode));
     }
-    drawBoard(ctx, 0, 0, game);
+    drawUpdated(ctx, oldSelection, selection, game);
     drawThickLines(ctx);
 }
 
